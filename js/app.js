@@ -1,6 +1,7 @@
 const criptomonedasSelect = document.querySelector('#criptomonedas');
 const monedaSelect = document.querySelector('#moneda');
 const formulario = document.querySelector('#formulario');
+const resultado = document.querySelector('#resultado');
 
 const objBusqueda = {
   moneda: '',
@@ -56,6 +57,7 @@ function submitFormulario(e) {
   }
 
   //Consultar la APi con los resultados
+  consultarAPI();
 }
 
 function mostrarAlerta( mensaje ) {
@@ -73,4 +75,63 @@ function mostrarAlerta( mensaje ) {
       divMensaje.remove();
     }, 3000);
   }
+}
+
+function consultarAPI() {
+  const { moneda, criptomoneda } = objBusqueda;
+
+  const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`;
+
+  mostrarSpinner();
+
+  fetch(url)
+    .then(respuesta => respuesta.json())
+    .then(resultado => mostrarCotizacionHTML(resultado.DISPLAY[criptomoneda][moneda]))
+}
+
+function mostrarCotizacionHTML(cotizacion) {
+  limpiarHTML();
+
+  const { PRICE, HIGHDAY, LOWDAY, CHANGEPCT24HOUR, LASTUPDATE } = cotizacion;
+
+  const precio = document.createElement('p');
+  precio.classList.add('precio');
+  precio.innerHTML = `El precio es: <span>${PRICE}</span>`;
+ 
+  const precioAlto = document.createElement('P');
+  precioAlto.innerHTML = `Precio más alto del día <span>${HIGHDAY}</span>`;
+
+  const precioBajo = document.createElement('P');
+  precioBajo.innerHTML = `Precio más bajo del día <span>${LOWDAY}</span>`;
+  
+  const ultimasHoras = document.createElement('P');
+  ultimasHoras.innerHTML = `Variación últimas 24 horas <span>${CHANGEPCT24HOUR}%</span>`;
+  
+  const ultimaActualizacion = document.createElement('P');
+  ultimaActualizacion.innerHTML = `Última actualización <span>${LASTUPDATE === 'Just now' ? 'Justo Ahora' : LASTUPDATE }</span>`;
+  
+  resultado.append(precio, precioAlto, precioBajo, ultimasHoras, ultimaActualizacion);
+}
+
+function limpiarHTML() {
+  while(resultado.firstChild) {
+    resultado.removeChild(resultado.firstChild);  
+  }
+}
+
+function mostrarSpinner() {
+  limpiarHTML();
+
+  const spinner = document.createElement('DIV');
+  spinner.classList.add('spinner');
+
+  spinner.innerHTML = `
+    <div class="rect1"></div>
+    <div class="rect2"></div>
+    <div class="rect3"></div>
+    <div class="rect4"></div>
+    <div class="rect5"></div>
+  `
+
+  resultado.append(spinner);
 }
